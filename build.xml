@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<project name="Transmorgify" basedir="." default="jar">
+
+	<property name="version" value="0.2"/>
+	
+	<property name="lib.dir" value="lib"/>
+    <property name="src.dir" value="src"/>
+	<property name="tests.dir" value="test"/>
+	
+    <property name="bin.dir" value="ant-bin"/>
+	<property name="testbin.dir" value="ant-test-bin"/>
+	
+	<path id ="src.classpath">
+				<fileset dir="${lib.dir}" includes="**/*.jar"/>	
+				
+		</path>
+	<path id ="test.classpath">
+			<fileset dir="${lib.dir}" includes="**/*.jar"/>		
+			<pathelement path= "${bin.dir}"/>
+	</path>
+	
+	<path id ="test.run.classpath">
+		<fileset dir="${lib.dir}" includes="**/*.jar"/>	
+		<pathelement path= "${bin.dir}"/>
+		<pathelement path= "${testbin.dir}"/>
+		</path>
+	
+    <target name="clean" description="Delete all generated files">
+        <delete dir="${bin.dir}" failonerror="false"/>
+    	<delete dir="${testbin.dir}" failonerror="false"/>
+        <delete file="${ant.project.name}.jar"/>
+    </target>
+
+    <target name="bin" description="Compiles the code">
+        <mkdir dir="${bin.dir}"/>
+    	<mkdir dir="${testbin.dir}"/>
+        <javac 
+        	debug="true"
+        	srcdir="${src.dir}" 
+        	classpathref="src.classpath"
+        	destdir="${bin.dir}"/>
+    	
+    	<javac srcdir="${tests.dir}" 
+    		classpathref="test.classpath"
+    		destdir="${testbin.dir}"/>
+    </target>
+
+    <target name="jar" description="JARs the Task" depends="unit.tests">
+        <jar destfile="${ant.project.name}-${version}.jar" basedir="${bin.dir}">
+        	 <manifest>
+        	        <attribute name="Main-Class" value="net.sf.transmorgify.RunTransmorgify" />
+        	      </manifest>
+        	</jar>
+    </target>
+
+	<target name ="unit.tests" depends ="bin">
+				<junit haltonfailure="no" showoutput="yes"
+					printsummary="yes" 
+					errorproperty="unit.test.failed"
+					failureproperty="unit.test.failed"
+					
+					fork="true">		
+					<formatter type="plain"/>
+					
+				  <test name="net.sf.transmorgify.AllTransmorgifyTests"/>
+					<classpath refid = "test.run.classpath" />
+				</junit>
+		<fail if= "unit.test.failed">
+					Unit tests failed.
+				</fail>
+		
+		</target>
+	<!--HERE IS HOW WE WILL DEFINE OUR ANT TASK prob need classpathref since we will have lots of jars
+	asm etc
+	  <taskdef name="helloworld" classname="HelloWorld" classpath="${ant.project.name}.jar"/>
+        <helloworld/>
+	-->
+</project>
