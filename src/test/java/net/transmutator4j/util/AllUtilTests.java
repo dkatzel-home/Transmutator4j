@@ -17,7 +17,7 @@ import org.junit.runners.Suite.SuiteClasses;
 @RunWith(Suite.class)
 @SuiteClasses({
 	TestJavaProcessBuilder.class,
-	TestTransmorgifyUtil.class,
+	TestTransmutatorUtil.class,
 	TestMultiIterator.class,
 	TestTimedProcess.class
 })
