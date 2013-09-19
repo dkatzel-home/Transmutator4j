@@ -8,22 +8,24 @@
  * Contributors:
  *     Danny Katzel - initial API and implementation
  ******************************************************************************/
-package net.transmutator4j.util;
+package net.transmutator4j;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.Scanner;
+import net.transmutator4j.mutations.AllMutationsTests;
+import net.transmutator4j.mutator.AllMutatorTests;
+import net.transmutator4j.util.AllUtilTests;
 
-public class Java2HtmlCoverter {
+import org.junit.runner.RunWith;
+import org.junit.runners.Suite;
+import org.junit.runners.Suite.SuiteClasses;
 
-	public static void convertFile(File javaFile, OutputStream out) throws IOException{
-		Scanner scanner = new Scanner(javaFile);
-		while(scanner.hasNextLine()){
-			String line = scanner.nextLine();
-			out.write(TransmutatorUtil.xmlEncode(line).getBytes());
-			out.write("<br/>".getBytes());
-			out.flush();
-		}
-	}
+@RunWith(Suite.class)
+@SuiteClasses({
+	AllMutationsTests.class,
+	AllMutatorTests.class,
+	AllUtilTests.class,
+	TestTransmutator4j.class,
+	
+})
+public class AllTests {
+
 }

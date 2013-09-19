@@ -11,7 +11,7 @@
 package net.transmutator4j.mutator;
 
 import net.transmutator4j.mutations.Mutation;
-import net.transmutator4j.util.TransmorgifyUtil;
+import net.transmutator4j.util.TransmutatorUtil;
 
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
@@ -27,7 +27,7 @@ public class MutateClassAdapter extends ClassVisitor implements Mutator{
 	private int mutatedLine;
 	private String currentVisitingClassName;
 	public MutateClassAdapter(ClassVisitor cv,int previousMutationCount) {
-		super(TransmorgifyUtil.CURRENT_ASM_VERSION,cv);	
+		super(TransmutatorUtil.CURRENT_ASM_VERSION,cv);	
 		this.previousMutationCount = previousMutationCount;
 	}
 	

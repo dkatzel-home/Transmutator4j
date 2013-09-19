@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<project name="Transmorgify" basedir="." default="jar">
+<project name="Transmutator4j" basedir="." default="jar">
 
 	<property name="version" value="0.2"/>
 	
 	<property name="lib.dir" value="lib"/>
-    <property name="src.dir" value="src"/>
-	<property name="tests.dir" value="test"/>
+    <property name="src.dir" value="src/main/java"/>
+	<property name="tests.dir" value="src/test/java"/>
 	
     <property name="bin.dir" value="ant-bin"/>
 	<property name="testbin.dir" value="ant-test-bin"/>
@@ -38,6 +38,7 @@
         	debug="true"
         	srcdir="${src.dir}" 
         	classpathref="src.classpath"
+        	includeantruntime="false"
         	destdir="${bin.dir}"/>
     	
     	<javac srcdir="${tests.dir}" 
@@ -48,7 +49,7 @@
     <target name="jar" description="JARs the Task" depends="unit.tests">
         <jar destfile="${ant.project.name}-${version}.jar" basedir="${bin.dir}">
         	 <manifest>
-        	        <attribute name="Main-Class" value="net.sf.transmorgify.RunTransmorgify" />
+        	        <attribute name="Main-Class" value="net.transmutator4j.RunTransmutator4j" />
         	      </manifest>
         	</jar>
     </target>
@@ -62,7 +63,7 @@
 					fork="true">		
 					<formatter type="plain"/>
 					
-				  <test name="net.sf.transmorgify.AllTransmorgifyTests"/>
+				  <test name="net.transmutator4j.AllTests"/>
 					<classpath refid = "test.run.classpath" />
 				</junit>
 		<fail if= "unit.test.failed">

@@ -18,7 +18,7 @@ import java.util.Map;
 
 import net.transmutator4j.mutations.Mutation;
 import net.transmutator4j.mutator.AbstractTestMutateMethodAdapter.MockMethodVisitor;
-import net.transmutator4j.util.TransmorgifyUtil;
+import net.transmutator4j.util.TransmutatorUtil;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -128,7 +128,7 @@ public class TestMutateClassAdapter {
 		
 		private final Map<VisitMethodExpectation, MethodVisitor> expectedMethodVisits = new HashMap<>();
 		public ClassVisitorTestDouble() {
-			super(TransmorgifyUtil.CURRENT_ASM_VERSION);
+			super(TransmutatorUtil.CURRENT_ASM_VERSION);
 		}
 
 		public void expectVisit(int version, int access, String name,

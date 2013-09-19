@@ -70,7 +70,7 @@ public class TimedProcess implements Callable<Integer>{
 		      return worker.getExitValue();
 		    }
 		    else{
-		    	return TransmorgifyUtil.EXIT_STATES.TIMED_OUT.getExitValue();
+		    	return TransmutatorUtil.EXIT_STATES.TIMED_OUT.getExitValue();
 		    }
 		  } catch(InterruptedException ex) {			
 		    Thread.currentThread().interrupt();

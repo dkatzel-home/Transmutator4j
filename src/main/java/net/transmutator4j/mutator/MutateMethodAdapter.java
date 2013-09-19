@@ -15,7 +15,7 @@ import net.transmutator4j.mutations.ArithmeticMutation;
 import net.transmutator4j.mutations.BooleanMutation;
 import net.transmutator4j.mutations.IncrementMutation;
 import net.transmutator4j.mutations.ConditionalJumpMutation;
-import net.transmutator4j.util.TransmorgifyUtil;
+import net.transmutator4j.util.TransmutatorUtil;
 
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
@@ -25,7 +25,7 @@ public class MutateMethodAdapter extends MethodVisitor {
 	private final Mutator mutator;
 	private int mutatedLine;
 	public MutateMethodAdapter(MethodVisitor mv,Mutator mutator) {
-		super(TransmorgifyUtil.CURRENT_ASM_VERSION, mv);
+		super(TransmutatorUtil.CURRENT_ASM_VERSION, mv);
 		this.mutator = mutator;
 	}
 

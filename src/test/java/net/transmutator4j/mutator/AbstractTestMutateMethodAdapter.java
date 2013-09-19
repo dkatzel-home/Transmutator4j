@@ -15,7 +15,7 @@ import static org.easymock.EasyMock.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.transmutator4j.util.TransmorgifyUtil;
+import net.transmutator4j.util.TransmutatorUtil;
 
 import org.junit.Before;
 import org.objectweb.asm.Label;
@@ -42,7 +42,7 @@ public abstract class AbstractTestMutateMethodAdapter {
 		private final List<Expectations> incrementInstructionExpectations;
 		private final List<Expectations> instructionExpectations;
 		public MockMethodVisitor() {
-			super(TransmorgifyUtil.CURRENT_ASM_VERSION);
+			super(TransmutatorUtil.CURRENT_ASM_VERSION);
 			jumpExpectations = new ArrayList<>();
 			lineNumberExpectations = new ArrayList<>();
 			incrementInstructionExpectations = new ArrayList<>();
