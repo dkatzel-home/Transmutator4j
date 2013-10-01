@@ -11,6 +11,7 @@
 package net.transmutator4j.mutator;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -61,6 +62,9 @@ public class MutatedClassLoader extends ClassLoader {
 	private Class<?> loadClassFromRepository(String name){
 		try {
 			InputStream in = repository.getClassAsStream(name);
+			if(in ==null){
+				return null;
+			}
 			ByteArrayOutputStream out = new ByteArrayOutputStream();
 
 			byte[] buf = new byte[1024];

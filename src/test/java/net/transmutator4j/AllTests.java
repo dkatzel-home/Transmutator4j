@@ -12,6 +12,7 @@ package net.transmutator4j;
 
 import net.transmutator4j.mutations.AllMutationsTests;
 import net.transmutator4j.mutator.AllMutatorTests;
+import net.transmutator4j.repository.AllRepositoryTests;
 import net.transmutator4j.util.AllUtilTests;
 
 import org.junit.runner.RunWith;
@@ -20,9 +21,12 @@ import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
 @SuiteClasses({
+	
 	AllMutationsTests.class,
 	AllMutatorTests.class,
 	AllUtilTests.class,
+	AllRepositoryTests.class,
+	
 	TestTransmutator4j.class,
 	
 })

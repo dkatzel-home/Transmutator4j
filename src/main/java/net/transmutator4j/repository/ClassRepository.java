@@ -30,7 +30,8 @@ public interface ClassRepository extends Iterable<String>{
 	 * Get the InputStream of the compiled bytes for the
 	 * given qualified class.
 	 * @param qualifiedClassName qualified class name as String.
-	 * @return an inputStream will never be null.
+	 * @return an inputStream or  null if class does not exist
+	 * in repository.
 	 * @throws IOException if there is a problem fetching
 	 * the inputStream or the qualified class is not in the repository.
 	 */

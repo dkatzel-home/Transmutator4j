@@ -16,7 +16,6 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.zip.ZipFile;
 
 import net.transmutator4j.util.MultiIterator;
 
@@ -56,8 +55,8 @@ public class ClassPathClassRepository implements ClassRepository {
 			}
 		}
 	}
-	private void rescursivelyAddJars(File file) throws IOException {
-		for(File subFile : file.listFiles()){
+	private void rescursivelyAddJars(File dir) throws IOException {
+		for(File subFile : dir.listFiles()){
 			if(subFile.getName().endsWith(".jar")){
 				addJarAsRepository(subFile);
 			}
@@ -67,7 +66,7 @@ public class ClassPathClassRepository implements ClassRepository {
 		}
 	}
 	private void addJarAsRepository(File jarFile) throws IOException{
-		classRepositories.add(new ZipClassRepository(new ZipFile(jarFile)));
+		classRepositories.add(new ZipClassRepository(jarFile));
 	}
 	
 	

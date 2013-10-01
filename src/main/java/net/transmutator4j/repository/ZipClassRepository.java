@@ -10,12 +10,14 @@
  ******************************************************************************/
 package net.transmutator4j.repository;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 /**
  * {@code ZipClassRepository} is an implementation of ClassRepository
@@ -25,6 +27,16 @@ import java.util.zip.ZipFile;
  */
 public class ZipClassRepository implements ClassRepository{
 	private final ZipFile zipFile;
+	
+	/**
+	 * Wraps the given {@link ZipFile} in a ZipClassRepository.
+	 * @param zipFile the zip file to wrap.
+	 * @throws IOException 
+	 * @throws  
+	 */
+	public ZipClassRepository(File zipFile) throws IOException{
+		this(new ZipFile(zipFile));
+	}
 	/**
 	 * Wraps the given {@link ZipFile} in a ZipClassRepository.
 	 * @param zipFile the zip file to wrap.
@@ -39,9 +51,7 @@ public class ZipClassRepository implements ClassRepository{
 		if(entry ==null){
 			return null;
 		}
-		InputStream inputStream = zipFile.getInputStream(entry);
-		
-		return inputStream;
+		return zipFile.getInputStream(entry);
 	}
 
 	/* (non-Javadoc)
