@@ -46,7 +46,7 @@ public class ClassDirectoryClassRepository implements ClassRepository {
 	}
 	@Override
 	public InputStream getClassAsStream(String qualifiedClassName) throws IOException{
-		StringBuilder builder= new StringBuilder();
+		StringBuilder builder= new StringBuilder(qualifiedClassName.length() + 6);
 		builder.append(qualifiedClassName.replace('.', File.separatorChar))
 		.append(".class");
 		return getTranslatedClassNameAsStream(builder.toString());

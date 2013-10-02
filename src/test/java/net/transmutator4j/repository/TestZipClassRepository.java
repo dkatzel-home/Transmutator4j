@@ -12,10 +12,12 @@ import java.util.zip.ZipFile;
 
 import org.junit.Test;
 import static org.junit.Assert.*;
-public class TestZipClassRepository {
+public class TestZipClassRepository extends AbstractTestRepository{
 
 	private ZipClassRepository sut;
 	private ZipFile zipFile;
+	
+	
 	
 	public TestZipClassRepository() throws IOException{
 		File file= new File(TestZipClassRepository.class.getResource("example.zip").getFile());
@@ -46,7 +48,8 @@ public class TestZipClassRepository {
 	public void iterator(){		
 		assertEquals( getExpectedNames(), getActualNames());
 	}
-	private List<String> getExpectedNames() {
+	@Override
+	protected List<String> getExpectedNames() {
 		List<String> expectedNames = new ArrayList<>();
 		Enumeration<? extends ZipEntry> enumeration =zipFile.entries();
 		while(enumeration.hasMoreElements()){
@@ -66,11 +69,18 @@ public class TestZipClassRepository {
 		return actualNames;
 	}
 	
-	private InputStream getExpected(String qualifiedClassName) throws IOException{
+	@Override
+	protected InputStream getExpected(String qualifiedClassName) throws IOException{
 		ZipEntry entry =zipFile.getEntry(qualifiedClassName.replace('.', '/')+".class");
 		if(entry ==null){
 			return null;
 		}
 		return zipFile.getInputStream(entry);
 	}
+	@Override
+	protected ClassRepository getSut() {
+		return sut;
+	}
+	
+	
 }
