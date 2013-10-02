@@ -7,7 +7,11 @@ import org.junit.runners.Suite.SuiteClasses;
 @RunWith(Suite.class)
 @SuiteClasses({
 	TestClassDirectoryRepository.class,
-	TestZipClassRepository.class
+	TestZipClassRepository.class,
+	
+	TestClassPathRepositoryDir.class,
+	TestClassPathRepositoryMultipleDirs.class,
+	TestClassPathRepositoryWithZip.class
 })
 public class AllRepositoryTests {
 

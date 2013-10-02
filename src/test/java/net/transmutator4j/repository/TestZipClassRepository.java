@@ -4,6 +4,7 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
@@ -20,7 +21,7 @@ public class TestZipClassRepository extends AbstractTestRepository{
 	
 	
 	public TestZipClassRepository() throws IOException{
-		File file= new File(TestZipClassRepository.class.getResource("example.zip").getFile());
+		File file= Paths.get("externalClasses", "zipDir","example.zip").toFile();
 		sut = new ZipClassRepository(file);
 		zipFile = new ZipFile(file);
 	}

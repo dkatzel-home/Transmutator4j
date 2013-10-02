@@ -80,13 +80,14 @@ public class ClassDirectoryClassRepository implements ClassRepository {
 			
 			@Override
 			public boolean accept(File dir, String name) {
-				return dir.isDirectory() || name.endsWith(".class");
+				boolean accept= new File(dir,name).isDirectory() || name.endsWith(".class");
+				return accept;
 			}
 		})){
 			if(!classFile.isDirectory()){
 				list.add(classFile.getAbsolutePath()
 						.replaceAll("^"+escapeForRegularExpression(rootDir.getAbsolutePath()), "")
-						.replaceAll(".class$", "")
+						.replaceAll("\\.class$", "")
 						.replace(File.separatorChar, '.')
 						.substring(1));
 			}else{

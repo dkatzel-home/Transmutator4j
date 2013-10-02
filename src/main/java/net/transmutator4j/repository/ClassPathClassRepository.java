@@ -46,7 +46,7 @@ public class ClassPathClassRepository implements ClassRepository {
 	public ClassPathClassRepository(String classPath) throws IOException{
 		for(String path : classPath.split(File.pathSeparator)){
 			File file = new File(path);
-			if(path.endsWith(".jar")){
+			if(isZipOrJar(file)){
 				addJarAsRepository(file);
 			}
 			else{
@@ -55,9 +55,13 @@ public class ClassPathClassRepository implements ClassRepository {
 			}
 		}
 	}
+	private boolean isZipOrJar(File file) {
+		String name = file.getName();
+		return name.endsWith(".jar") || name.endsWith(".zip");
+	}
 	private void rescursivelyAddJars(File dir) throws IOException {
 		for(File subFile : dir.listFiles()){
-			if(subFile.getName().endsWith(".jar")){
+			if(isZipOrJar(subFile)){
 				addJarAsRepository(subFile);
 			}
 			if(subFile.isDirectory()){
@@ -78,7 +82,7 @@ public class ClassPathClassRepository implements ClassRepository {
 				return in;
 			}
 		}
-		throw new IOException("could not find class for "+qualifiedClassName);
+		return null;
 	}
 
 	/* (non-Javadoc)

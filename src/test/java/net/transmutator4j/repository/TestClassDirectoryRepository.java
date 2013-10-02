@@ -14,7 +14,7 @@ public class TestClassDirectoryRepository extends AbstractTestRepository{
 	private final ClassDirectoryClassRepository sut;
 	
 	public TestClassDirectoryRepository(){
-		rootDir = new File("externalClasses/classDir");
+		rootDir = new File("externalClasses","classDir");
 		sut = new ClassDirectoryClassRepository(rootDir);
 	}
 	@Override
@@ -36,9 +36,6 @@ public class TestClassDirectoryRepository extends AbstractTestRepository{
 		}
 		String packageNamePrefix = packagePrefixBuilder.toString();
 		for(File f : dir.listFiles()){
-			if(f.isHidden()){
-				continue;
-			}
 			if(f.isDirectory()){
 				names.addAll(getClassNamesFrom(f, packageNamePrefix+f.getName()));
 			}else if(f.getName().endsWith(".class")){
