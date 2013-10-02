@@ -114,6 +114,10 @@ public class ProcessStreamReader implements Runnable{
 	}
 	@Override
 	public void run() {
+		if(in==null){
+			//no-op?
+			return;
+		}
 		BufferedReader br = new BufferedReader(new InputStreamReader(in, charSet));
 		String line =null;
 		try {
