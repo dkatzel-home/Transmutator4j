@@ -17,7 +17,6 @@ import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 /**
  * {@code ZipClassRepository} is an implementation of ClassRepository
