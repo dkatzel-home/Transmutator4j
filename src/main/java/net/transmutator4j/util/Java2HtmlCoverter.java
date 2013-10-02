@@ -18,12 +18,13 @@ import java.util.Scanner;
 public class Java2HtmlCoverter {
 
 	public static void convertFile(File javaFile, OutputStream out) throws IOException{
-		Scanner scanner = new Scanner(javaFile);
-		while(scanner.hasNextLine()){
-			String line = scanner.nextLine();
-			out.write(TransmutatorUtil.xmlEncode(line).getBytes());
-			out.write("<br/>".getBytes());
-			out.flush();
+		try(Scanner scanner = new Scanner(javaFile);){
+			while(scanner.hasNextLine()){
+				String line = scanner.nextLine();
+				out.write(TransmutatorUtil.xmlEncode(line).getBytes());
+				out.write("<br/>".getBytes());
+				out.flush();
+			}
 		}
 	}
 }
