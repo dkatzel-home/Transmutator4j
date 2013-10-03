@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>net.sf.Transmutator4j</groupId>
   <artifactId>Transmutator4j</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>0.0.4-SNAPSHOT</version>
   <name>Transmutator4j</name>
   <description>Transmutator4j is a Java Mutation Testing library that dynamically modifies byte code during class loading when running your tests. If the tests still all pass, then you know the portion of the code that was modified is not properly tested. (Or in rare cases, not needed).</description>
   <build>
