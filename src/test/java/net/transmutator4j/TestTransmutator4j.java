@@ -10,6 +10,8 @@
  ******************************************************************************/
 package net.transmutator4j;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.lang.reflect.InvocationTargetException;
 import org.junit.Test;
 import org.junit.runner.JUnitCore;
@@ -85,11 +87,19 @@ public class TestTransmutator4j {
 	public void somekindOfExceptionIsThrown(){
 		RuntimeException expectedException = new RuntimeException("expected");
 		JUnitCore mockCore = createMockCoreThatThrowsExceptionOnRun(expectedException);
+		//replace System.out with test double 
+		//otherwise we get stack trace printed to STDOUT
+		//which is confusing since it's supposed to happen.
+		PrintStream originalOut = System.out;
+		System.setOut(new PrintStream(new ByteArrayOutputStream()));
 		try{
 			new TransmorgifyTestDouble(mockCore,this.getClass().getName());
 			fail("should throw exception");
 		}catch(Exception e){
 			assertEquals(expectedException, e.getCause());
+		}finally{
+			//restore System.out
+			System.setOut(originalOut);
 		}
 	}
 	protected JUnitCore createMockCoreThatThrowsExceptionOnRun(final RuntimeException e){
