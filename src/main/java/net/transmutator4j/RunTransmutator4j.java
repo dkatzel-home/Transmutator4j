@@ -70,7 +70,7 @@ public class RunTransmutator4j implements Runnable{
 		
 		PrintWriter pw = new PrintWriter(out,true);
 		pw.append(String.format("<?xml version=\"1.0\" encoding=\"UTF-8\"?>%n"));
-		pw.append(String.format("<transmorgify num_tests =\"%d\">%n",numTotalTests));
+		pw.append(String.format("<transmutator4j num_tests =\"%d\">%n",numTotalTests));
 		pw.close();
 		
 		OUTER: for(String classToMutate : new ClassPathClassRepository()){
@@ -133,11 +133,10 @@ public class RunTransmutator4j implements Runnable{
 						numberOfMutationsThatStillPassedTests);
 		out = new FileOutputStream(xmlFile,true);
 		pw = new PrintWriter(out,true);
-		pw.append(String.format("</transmorgify>%n"));
+		pw.append(String.format("</transmutator4j>%n"));
 		//pw.flush();
 		pw.close();
 		} catch (Exception e) {
-			System.out.println("here");
 			throw new RuntimeException(e);
 		}
 	}
