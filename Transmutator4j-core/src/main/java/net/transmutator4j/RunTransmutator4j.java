@@ -81,7 +81,7 @@ public class RunTransmutator4j implements Runnable{
 					boolean done = false;
 					int mutationCount=0;
 					while(!done){
-						
+						System.out.println(mutationCount);
 						JavaProcessBuilder builder = new JavaProcessBuilder(
 								
 								"net.transmutator4j.Transmutator4j", 

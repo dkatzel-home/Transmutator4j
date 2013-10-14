@@ -91,14 +91,18 @@ public class TimedProcess implements Callable<Integer>{
 		public void run() {
 			//drain input and error
 			//stream in case it causes blocking
-			ProcessStreamReader.create(process.getInputStream());
-	    	ProcessStreamReader.create(process.getErrorStream());
+			
+			ProcessStreamReader stdOut =ProcessStreamReader.create(process.getInputStream());
+			ProcessStreamReader stdErr =ProcessStreamReader.create(process.getErrorStream());
 	    	
 		    try { 
 		    	
 		    	exitValue = process.waitFor();
 		    } catch (InterruptedException ignore) {
 		      return;
+		    }finally{
+		    	System.out.println("STDOUT: " + stdOut.getCurrentContentsAsString());
+		    	System.err.println("STDERR: " + stdErr.getCurrentContentsAsString());
 		    }
 		    
 		  }

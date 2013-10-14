@@ -101,10 +101,9 @@ public class Transmutator4jTask extends Task{
     
 	@Override
 	public void execute() throws BuildException {
-		System.out.println("classpathRef = " + classpathRef);
 		Java javaTask = (Java)getProject().createTask("java");
 		javaTask.setTaskName(getTaskName());
-		javaTask.setClassname("net.transmutator4j.RunTransmorgify");
+		javaTask.setClassname("net.transmutator4j.RunTransmutator4j");
 		if(classpath !=null){
 			javaTask.setClasspath(classpath);
 		}

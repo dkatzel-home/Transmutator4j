@@ -54,9 +54,9 @@ public class Transmutator4j {
 		}
 		junitCore.addListener(new EarlyStopper(junitCore));
 		try{
-		Result result = junitCore.run(getLoadedClass(testClass));
-		testsStillPassed = result.wasSuccessful();
-		numberOfFailedTests = result.getFailureCount();
+			Result result = junitCore.run(getLoadedClass(testClass));
+			testsStillPassed = result.wasSuccessful();
+			numberOfFailedTests = result.getFailureCount();
 		}catch(StoppedByUserException e){
 			//this will be thrown if EarlyStopper 
 			//halts tests so it's OK
