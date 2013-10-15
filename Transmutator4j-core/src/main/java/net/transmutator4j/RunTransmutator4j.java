@@ -35,7 +35,7 @@ import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
 
 public class RunTransmutator4j implements Runnable{
-	private static final String DEFAULT_OUTPUT_XML = "transmorgify.xml";
+	private static final String DEFAULT_OUTPUT_XML = "transmutator4j.xml";
 	
 	private final String nameOfTestSuite;
 	private final Pattern classesToMutates;
@@ -62,10 +62,8 @@ public class RunTransmutator4j implements Runnable{
 			 int numTotalTests = runUnmutatedTests();
 			 long unmutatedTimeEnd = System.currentTimeMillis();
 			long unmutatedElapsedTime = unmutatedTimeEnd-startTime;
-			System.out.println("unmutated tests took " + unmutatedElapsedTime + " ms");
-			//+1 is added incase test suite is so fast that
-			//it takes 0 seconds
-			long timeOut = ((unmutatedElapsedTime/1000)+1)*10_000;
+			System.out.println("unmutated tests took " + unmutatedElapsedTime + " ms");			
+			long timeOut = computeTimeoutTime(unmutatedElapsedTime);
 			out = new FileOutputStream(xmlFile);
 		
 		PrintWriter pw = new PrintWriter(out,true);
@@ -81,7 +79,6 @@ public class RunTransmutator4j implements Runnable{
 					boolean done = false;
 					int mutationCount=0;
 					while(!done){
-						System.out.println(mutationCount);
 						JavaProcessBuilder builder = new JavaProcessBuilder(
 								
 								"net.transmutator4j.Transmutator4j", 
@@ -140,6 +137,14 @@ public class RunTransmutator4j implements Runnable{
 			throw new RuntimeException(e);
 		}
 	}
+
+
+	private long computeTimeoutTime(long unmutatedElapsedTime) {
+		//+1 is added incase test suite is so fast that
+		//it takes 0 milliseconds
+		long timeOut = unmutatedElapsedTime+1 *2;
+		return timeOut;
+	}
 	
 	
 	private int runUnmutatedTests() throws IOException, ClassNotFoundException {
@@ -191,7 +196,7 @@ public class RunTransmutator4j implements Runnable{
                 .create( "src" ));
         options.addOption(
         		OptionBuilder.withArgName( "classes" )
-                .withDescription(  "regular expression of classes to transmorgify" )
+                .withDescription(  "regular expression of classes to transmutate" )
                 .hasArg()
                 .isRequired(true)
                 .create( "classes" ));
@@ -201,11 +206,7 @@ public class RunTransmutator4j implements Runnable{
                 .withDescription(  "xml output file to write results to (default : "+ DEFAULT_OUTPUT_XML +")" )
                 .create( "out" ));
         
-        options.addOption(
-        		OptionBuilder.withArgName( "timeout" )
-                .hasArg()
-                .withDescription(  "number of milliseconds to wait for before considering tests have mutated into infinite loop" )
-                .create( "timeout" ));
+     
         CommandLineParser parser = new GnuParser();
         try {
 			CommandLine commandLine =parser.parse(options, args);

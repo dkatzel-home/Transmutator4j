@@ -127,7 +127,11 @@ public class ProcessStreamReader implements Runnable{
 				}
 			}
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
+			// TODO should we swallow or re-throw?
+			//if we throw an unchecked exception, then
+			//the test that is currently running will fail
+			//which would seem like the mutation was detected
+			//so we might return an incorrect answer.
 			e.printStackTrace();
 		}
 	}
@@ -144,5 +148,19 @@ public class ProcessStreamReader implements Runnable{
 			return null;
 		}
 		return buffer.toString();
+	}
+	/**
+	 * Would calling {@link #getCurrentContentsAsString()}
+	 * return a non-empty String.
+	 * @return {@code true} if {@link #getCurrentContentsAsString()}
+	 * would return a non-empty String; {@code false}
+	 * if {@link #getCurrentContentsAsString()} would return {@code null}
+	 * or an empty String. 
+	 */
+	public boolean hasContent(){
+		if(buffer ==null){
+			return false;
+		}
+		return buffer.length() >0;
 	}
 }

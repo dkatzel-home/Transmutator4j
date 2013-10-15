@@ -101,8 +101,12 @@ public class TimedProcess implements Callable<Integer>{
 		    } catch (InterruptedException ignore) {
 		      return;
 		    }finally{
-		    	System.out.println("STDOUT: " + stdOut.getCurrentContentsAsString());
-		    	System.err.println("STDERR: " + stdErr.getCurrentContentsAsString());
+		    	if(stdOut.hasContent()){
+		    		System.out.println("STDOUT: " + stdOut.getCurrentContentsAsString());
+		    	}
+		    	if(stdErr.hasContent()){
+		    		System.err.println("STDERR: " + stdErr.getCurrentContentsAsString());
+		    	}
 		    }
 		    
 		  }
