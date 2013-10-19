@@ -10,13 +10,22 @@
  ******************************************************************************/
 package net.transmutator4j;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
+import java.nio.channels.AsynchronousSocketChannel;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.util.concurrent.ExecutionException;
+
 import net.transmutator4j.mutator.MutateClassAdapter;
 import net.transmutator4j.mutator.MutatedClassLoader;
 import net.transmutator4j.repo.ClassPathClassRepository;
@@ -111,9 +120,10 @@ public class Transmutator4j {
 		String classToMutate = args[0];
 		String nameOfTestSuite = args[1];
 		int mutationCounter = Integer.parseInt(args[2]);
-		String xmlFile = args[3];
+		int port = Integer.parseInt(args[3]);
 		ClassWriter writer = new ClassWriter(0);
-		System.out.println("in main");
+		
+		
 		final MutateClassAdapter adapter = new MutateClassAdapter(writer,mutationCounter);
 		try{
 		ClassReader cr = new ClassReader(classToMutate);
@@ -132,17 +142,14 @@ public class Transmutator4j {
 				boolean testsStillPass = (Boolean)c.getDeclaredMethod("didTestsStillPass").invoke(transmorgifier);
 				int failCount = (Integer)c.getDeclaredMethod("getNumberOfFailedTests").invoke(transmorgifier);
 				
-				FileOutputStream out = new FileOutputStream(new File(xmlFile), true);
-				PrintWriter pw = new PrintWriter(out);
-				pw.append(String.format(
-						"\t<mutation class =\"%s\" line=\"%d\" descr=\"%s\" tests_still_passed =\"%s\">%s</mutation>%n", 
-						adapter.getMutatedClassname(),
-						adapter.getMutatedLine(),
-						TransmutatorUtil.xmlEncode(adapter.getMutation().description()),
-						failCount==0,
-						testsStillPass? "Passed": "Failed"));
-				pw.flush();
-				pw.close();
+				MutationTestResult result = new MutationTestResultImpl(adapter.getMutatedClassname(), adapter.getMutatedLine(), adapter.getMutation(), testsStillPass);
+				AsynchronousSocketChannel client = AsynchronousSocketChannel.open();
+			    client.connect(new InetSocketAddress("localhost",port)).get();
+			    ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+				ObjectOutputStream obWriter = new ObjectOutputStream(bytes);
+				obWriter.writeObject(result);
+			    client.write(ByteBuffer.wrap(bytes.toByteArray())).get();
+			    client.close();
 				if(testsStillPass){
 					TransmutatorUtil.EXIT_STATES.TESTS_ALL_STILL_PASSED.exitSystem();
 				}
@@ -153,6 +160,12 @@ public class Transmutator4j {
 			//can't find class don't worry about it
 			System.err.println("could not mutate "+ classToMutate);
 			
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ExecutionException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		TransmutatorUtil.EXIT_STATES.NO_MUTATIONS_MADE.exitSystem();
 

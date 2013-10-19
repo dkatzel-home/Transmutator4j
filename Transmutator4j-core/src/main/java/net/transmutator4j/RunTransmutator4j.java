@@ -13,8 +13,20 @@ package net.transmutator4j;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
 import java.io.PrintWriter;
 import java.lang.reflect.InvocationTargetException;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
+import java.nio.channels.AsynchronousServerSocketChannel;
+import java.nio.channels.AsynchronousSocketChannel;
+import java.nio.channels.Channels;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
+import java.util.concurrent.Future;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.transmutator4j.repo.ClassPathClassRepository;
@@ -57,70 +69,80 @@ public class RunTransmutator4j implements Runnable{
 	public void run() {
 		
 		long startTime = System.currentTimeMillis();
-		FileOutputStream out;
-		try {
-			 int numTotalTests = runUnmutatedTests();
-			 long unmutatedTimeEnd = System.currentTimeMillis();
-			long unmutatedElapsedTime = unmutatedTimeEnd-startTime;
-			System.out.println("unmutated tests took " + unmutatedElapsedTime + " ms");			
+		MutationTestListener listener=null;
+		
+		try(    //socket get dynamically generated port
+				AsynchronousServerSocketChannel server =  AsynchronousServerSocketChannel.open().bind(null);
+				
+				) {
+			int numTotalTests = runUnmutatedTests();
+			long unmutatedTimeEnd = System.currentTimeMillis();
+			long unmutatedElapsedTime = unmutatedTimeEnd - startTime;
+			System.out.println("unmutated tests took " + unmutatedElapsedTime + " ms");
 			long timeOut = computeTimeoutTime(unmutatedElapsedTime);
-			out = new FileOutputStream(xmlFile);
+			listener = new XmlWriterListener(xmlFile, numTotalTests);
+			int port = ((InetSocketAddress) server.getLocalAddress()).getPort();
+			System.out.println("port = " + port);
 		
-		PrintWriter pw = new PrintWriter(out,true);
-		pw.append(String.format("<?xml version=\"1.0\" encoding=\"UTF-8\"?>%n"));
-		pw.append(String.format("<transmutator4j num_tests =\"%d\">%n",numTotalTests));
-		pw.close();
-		
-		OUTER: for(String classToMutate : new ClassPathClassRepository()){
-			Matcher matcher = classesToMutates.matcher(classToMutate);
-			boolean shouldMutate = matcher.matches();
-			if(shouldMutate){
-				System.out.printf("mutating %s%n", classToMutate);
+			OUTER: for (String classToMutate : new ClassPathClassRepository()) {
+				Matcher matcher = classesToMutates.matcher(classToMutate);
+				boolean shouldMutate = matcher.matches();
+				if (shouldMutate) {
+					System.out.printf("mutating %s%n", classToMutate);
 					boolean done = false;
-					int mutationCount=0;
-					while(!done){
+					int mutationCount = 0;
+					while (!done) {
 						JavaProcessBuilder builder = new JavaProcessBuilder(
-								
-								"net.transmutator4j.Transmutator4j", 
-								classToMutate,
+
+						"net.transmutator4j.Transmutator4j", classToMutate,
 								nameOfTestSuite,
-								mutationCount+"",
-								xmlFile.getAbsolutePath()
-								);
-						
-						
-				       try {
-				    	   TimedProcess timedProcess = new TimedProcess(builder.getBuilder(),timeOut);
-				    	   int exitValue = timedProcess.call();
-				    	   TransmutatorUtil.EXIT_STATES exitState = TransmutatorUtil.EXIT_STATES.getValueFor(exitValue);
-				    	   if(exitState ==TransmutatorUtil.EXIT_STATES.NO_MUTATIONS_MADE){
-				    		   done = true;
-				    		   System.out.println();
-				    	   }
-				    	   else {
-				    		   System.out.print(exitState.getCharValue());
-				    		   numberOfMutationsMade++;
-				    		   if(exitState == TransmutatorUtil.EXIT_STATES.TIMED_OUT){
-			    				   numberOfMutationsThatTimedOut++;
-			    			   }
-				    		   else if (exitState ==TransmutatorUtil.EXIT_STATES.TESTS_ALL_STILL_PASSED){
-				    			   numberOfMutationsThatStillPassedTests++;				    			   
-				    		   }
-				    		   
-				    	   }
-			       
-				} catch (InterruptedException e) {
-					System.err.println("detected cancellation...halting");
-					break OUTER;
+								Integer.toString(mutationCount),
+								Integer.toString(port));
+
+						Future<AsynchronousSocketChannel> channel = server
+								.accept();
+						try {
+							TimedProcess timedProcess = new TimedProcess(
+									builder.getBuilder(), timeOut);
+							int exitValue = timedProcess.call();
+
+							TransmutatorUtil.EXIT_STATES exitState = TransmutatorUtil.EXIT_STATES
+									.getValueFor(exitValue);
+							if (exitState == TransmutatorUtil.EXIT_STATES.NO_MUTATIONS_MADE) {
+								done = true;
+								System.out.println();
+								channel.cancel(true);
+							} else {
+								AsynchronousSocketChannel resultChannel = channel
+										.get();
+								ObjectInputStream in = new ObjectInputStream(
+										Channels.newInputStream(resultChannel));
+								MutationTestResult testResult = (MutationTestResult) in
+										.readObject();
+								System.out.println(testResult);
+								listener.mutationResult(testResult);
+								System.out.print(exitState.getCharValue());
+								numberOfMutationsMade++;
+								if (exitState == TransmutatorUtil.EXIT_STATES.TIMED_OUT) {
+									numberOfMutationsThatTimedOut++;
+								} else if (exitState == TransmutatorUtil.EXIT_STATES.TESTS_ALL_STILL_PASSED) {
+									numberOfMutationsThatStillPassedTests++;
+								}
+
+							}
+
+						} catch (InterruptedException e) {
+							System.err
+									.println("detected cancellation...halting");
+							break OUTER;
+						}
+
+						mutationCount++;
+
+					}
+
 				}
-				
-				
-					mutationCount++;
-					
-				}
-				
 			}
-		}
 		
 		long endTime = System.currentTimeMillis();
 		System.out.printf("took %d ms to run %d mutations of which %d caused timeouts and %d still passed%n",
@@ -128,21 +150,26 @@ public class RunTransmutator4j implements Runnable{
 						numberOfMutationsMade,
 						numberOfMutationsThatTimedOut,
 						numberOfMutationsThatStillPassedTests);
-		out = new FileOutputStream(xmlFile,true);
-		pw = new PrintWriter(out,true);
-		pw.append(String.format("</transmutator4j>%n"));
-		//pw.flush();
-		pw.close();
+		
 		} catch (Exception e) {
 			throw new RuntimeException(e);
+		}finally{
+			if(listener !=null){
+				try {
+					listener.close();
+				} catch (IOException ignored) {
+					//ignore
+				}
+			}
 		}
 	}
 
 
 	private long computeTimeoutTime(long unmutatedElapsedTime) {
-		//+1 is added incase test suite is so fast that
+		//+1 is added in case test suite is so fast that
 		//it takes 0 milliseconds
-		long timeOut = unmutatedElapsedTime+1 *2;
+		long timeOut = ((unmutatedElapsedTime/1000)+1)*10_000;
+		System.out.println(timeOut);
 		return timeOut;
 	}
 	
@@ -151,9 +178,7 @@ public class RunTransmutator4j implements Runnable{
 		JUnitCore junit = new JUnitCore();
 		junit.addListener(new RunListener(){
 
-			/* (non-Javadoc)
-			 * @see org.junit.runner.notification.RunListener#testFailure(org.junit.runner.notification.Failure)
-			 */
+			
 			@Override
 			public void testFailure(Failure failure) throws Exception {
 				System.out.println("failed " + failure);
@@ -220,6 +245,7 @@ public class RunTransmutator4j implements Runnable{
 			else{
 				xmlFile = new File(DEFAULT_OUTPUT_XML);
 			}
+			
 			
 			new RunTransmutator4j(nameOfTestSuite, classesToMutates,xmlFile).run();
 		

@@ -10,6 +10,8 @@
  ******************************************************************************/
 package net.transmutator4j.mutations;
 
+import java.io.Serializable;
+
 import org.objectweb.asm.Opcodes;
 /**
  * {@code IncrementMutation} is a Mutation implementation
@@ -18,8 +20,12 @@ import org.objectweb.asm.Opcodes;
  * @author dkatzel-home
  *
  */
-public final class IncrementMutation implements Mutation {
+public final class IncrementMutation implements Mutation, Serializable {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private final int mutatedIncrement;
 	/**
 	 * Construct a new instance of {@link IncrementMutation}
