@@ -3,7 +3,7 @@
   <parent>
     <groupId>net.transmutator4j</groupId>
     <artifactId>Transmutator4j</artifactId>
-    <version>0.0.6-SNAPSHOT</version>
+    <version>0.0.7-SNAPSHOT</version>
   </parent>
   <artifactId>Transmutator4j-core</artifactId>
   <description>Core module to run Transmutator4j from commandline or from other Java code</description>

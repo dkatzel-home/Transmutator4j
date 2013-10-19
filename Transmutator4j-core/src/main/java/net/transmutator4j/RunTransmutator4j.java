@@ -14,11 +14,19 @@ import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.lang.reflect.InvocationTargetException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+import java.net.UnknownHostException;
+import java.nio.channels.AsynchronousChannelGroup;
 import java.nio.channels.AsynchronousServerSocketChannel;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.Channels;
+import java.nio.channels.CompletionHandler;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.transmutator4j.repo.ClassPathClassRepository;
@@ -42,41 +50,103 @@ public class RunTransmutator4j implements Runnable{
 	private static final String DEFAULT_OUTPUT_XML = "transmutator4j.xml";
 	
 	private final String nameOfTestSuite;
-	private final Pattern classesToMutates;
+	private final Pattern classesToInclude, classesToExclude;
 	private int numberOfMutationsMade=0;
 	private int numberOfMutationsThatStillPassedTests=0;
 	private int numberOfMutationsThatTimedOut=0;
 	private final  MutationTestListener listener;
 	
-	public RunTransmutator4j(String nameOfTestSuite, Pattern classesToMutate,
+	public RunTransmutator4j(String nameOfTestSuite, Pattern include, Pattern exclude,
 			File xmlFile) throws IOException {
 		this.nameOfTestSuite = nameOfTestSuite;
-		this.classesToMutates = classesToMutate;
+		this.classesToInclude = include;
+		this.classesToExclude = exclude;
 		listener = new XmlWriterListener(xmlFile);
 	}
 	
+	private boolean shouldMutate(String qualifiedClassname){
+		if(classesToInclude !=null){
+			Matcher matcher = classesToInclude.matcher(qualifiedClassname);
+			if(!matcher.matches()){
+				return false;
+			}
+		}
+		if(classesToExclude !=null){
+			Matcher matcher = classesToExclude.matcher(qualifiedClassname);
+			if(matcher.matches()){
+				return false;
+			}
+		}
+		return true;
+	}
 	
 	@Override
-	public void run() {
+	public void run(){
 		
 		long startTime = System.currentTimeMillis();
-		
-		try(    //socket get dynamically generated port
-				AsynchronousServerSocketChannel server =  AsynchronousServerSocketChannel.open().bind(null);
+		InetAddress localhost;
+		try {
+			localhost = InetAddress.getLocalHost();
+		} catch (UnknownHostException e) {
+			throw new IllegalStateException("can not resolve local host", e);
+		}
+		//socket get dynamically generated port
+		SocketAddress socket = new InetSocketAddress(localhost, 0);
+		AsynchronousChannelGroup group;
+		try {
+			group = AsynchronousChannelGroup.withFixedThreadPool(10, Executors.defaultThreadFactory());
+		} catch (IOException e1) {
+			throw new IllegalStateException("can not create channel group", e1);
+		}
+
+		try(    
+				
+				AsynchronousServerSocketChannel server =  AsynchronousServerSocketChannel.open(group).bind(socket, 10);
 				
 				) {
+		
 			int numTotalTests = runUnmutatedTests();
 			long unmutatedTimeEnd = System.currentTimeMillis();
 			long unmutatedElapsedTime = unmutatedTimeEnd - startTime;
 			listener.testInfo(numTotalTests, unmutatedElapsedTime);
 			System.out.println("unmutated tests took " + unmutatedElapsedTime + " ms");
 			long timeOut = computeTimeoutTime(unmutatedElapsedTime);
-			int port = ((InetSocketAddress) server.getLocalAddress()).getPort();
-			System.out.println("port = " + port);
-		
+			InetSocketAddress inetSocketAddress = (InetSocketAddress) server.getLocalAddress();
+			int port = inetSocketAddress.getPort();
+			server.accept(null, new CompletionHandler<AsynchronousSocketChannel, Object>() {
+			    @Override
+			    public void completed(AsynchronousSocketChannel resultChannel, Object attachment) {
+			       try{
+			    	ObjectInputStream in = new ObjectInputStream(Channels.newInputStream(resultChannel));
+					MutationTestResult testResult = (MutationTestResult) in.readObject();
+					
+					in.close();
+			       
+					listener.mutationResult(testResult);
+					boolean stillPassed =testResult.testsStillPassed();
+					System.out.print(stillPassed? "P":".");
+					System.out.flush();
+					numberOfMutationsMade++;
+					
+					if (stillPassed) {
+						numberOfMutationsThatStillPassedTests++;
+					}
+			       }catch(IOException | ClassNotFoundException e){
+			    	   e.printStackTrace();
+			    	   throw new RuntimeException("error getting test result ", e);
+			       }
+			       server.accept(null, this);
+			       
+			    }
+			    @Override
+			    public void failed(Throwable e, Object attachment) {
+			       // System.err.println(attachment + " failed with:" + e.getClass().getName());
+			       // e.printStackTrace();
+			    }
+			});
+				    
 			OUTER: for (String classToMutate : new ClassPathClassRepository()) {
-				Matcher matcher = classesToMutates.matcher(classToMutate);
-				boolean shouldMutate = matcher.matches();
+				boolean shouldMutate = shouldMutate(classToMutate);
 				if (shouldMutate) {
 					System.out.printf("mutating %s%n", classToMutate);
 					boolean done = false;
@@ -89,8 +159,7 @@ public class RunTransmutator4j implements Runnable{
 								Integer.toString(mutationCount),
 								Integer.toString(port));
 
-						Future<AsynchronousSocketChannel> channel = server
-								.accept();
+						
 						try {
 							TimedProcess timedProcess = new TimedProcess(
 									builder.getBuilder(), timeOut);
@@ -101,28 +170,15 @@ public class RunTransmutator4j implements Runnable{
 							if (exitState == TransmutatorUtil.EXIT_STATES.NO_MUTATIONS_MADE) {
 								done = true;
 								System.out.println();
-								channel.cancel(true);
-							} else {
-								AsynchronousSocketChannel resultChannel = channel
-										.get();
-								ObjectInputStream in = new ObjectInputStream(
-										Channels.newInputStream(resultChannel));
-								MutationTestResult testResult = (MutationTestResult) in
-										.readObject();
-								listener.mutationResult(testResult);
-								System.out.print(exitState.getCharValue());
-								numberOfMutationsMade++;
-								if (exitState == TransmutatorUtil.EXIT_STATES.TIMED_OUT) {
-									numberOfMutationsThatTimedOut++;
-								} else if (exitState == TransmutatorUtil.EXIT_STATES.TESTS_ALL_STILL_PASSED) {
-									numberOfMutationsThatStillPassedTests++;
-								}
+							} else if(exitState ==TransmutatorUtil.EXIT_STATES.TIMED_OUT) {
+								numberOfMutationsThatTimedOut++;
 
 							}
 
 						} catch (InterruptedException e) {
-							System.err
-									.println("detected cancellation...halting");
+							System.err.println("detected cancellation...halting");
+							//stop iterating through all the classes
+							//by breaking out of outer for loop
 							break OUTER;
 						}
 
@@ -132,6 +188,8 @@ public class RunTransmutator4j implements Runnable{
 
 				}
 			}
+			group.shutdownNow();
+			//group.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
 		
 		long endTime = System.currentTimeMillis();
 		System.out.printf("took %d ms to run %d mutations of which %d caused timeouts and %d still passed%n",
@@ -150,6 +208,7 @@ public class RunTransmutator4j implements Runnable{
 					//ignore
 				}
 			}
+			group.shutdown();
 		}
 	}
 
@@ -208,11 +267,15 @@ public class RunTransmutator4j implements Runnable{
                 .hasArgs()
                 .create( "src" ));
         options.addOption(
-        		OptionBuilder.withArgName( "classes" )
+        		OptionBuilder.withArgName( "include" )
                 .withDescription(  "regular expression of classes to transmutate" )
                 .hasArg()
-                .isRequired(true)
-                .create( "classes" ));
+                .create( "include" ));
+        options.addOption(
+        		OptionBuilder.withArgName( "exclude" )
+                .withDescription(  "regular expression of classes NOT to transmutate" )
+                .hasArg()
+                .create( "exclude" ));
         options.addOption(
         		OptionBuilder.withArgName( "out" )
                 .hasArg()
@@ -225,7 +288,8 @@ public class RunTransmutator4j implements Runnable{
 			CommandLine commandLine =parser.parse(options, args);
 			
 			final String nameOfTestSuite = commandLine.getOptionValue("test");
-			final Pattern classesToMutates = Pattern.compile(commandLine.getOptionValue("classes"));
+			final Pattern classesToInclude = getPattern(commandLine,"include");
+			final Pattern classesToExclude =  getPattern(commandLine,"exclude");
 			File xmlFile;
 			if(commandLine.hasOption("out")){
 				xmlFile = new File(commandLine.getOptionValue("out"));
@@ -234,8 +298,7 @@ public class RunTransmutator4j implements Runnable{
 				xmlFile = new File(DEFAULT_OUTPUT_XML);
 			}
 			
-			
-			new RunTransmutator4j(nameOfTestSuite, classesToMutates,xmlFile).run();
+			new RunTransmutator4j(nameOfTestSuite, classesToInclude, classesToExclude, xmlFile).run();
 		
 		} catch (ParseException e1) {
 			HelpFormatter formatter = new HelpFormatter();
@@ -243,5 +306,10 @@ public class RunTransmutator4j implements Runnable{
 		}
 	}
 	
-		
+	private static Pattern getPattern(CommandLine commandline, String arg){
+		if(commandline.hasOption(arg)){
+			return Pattern.compile(commandline.getOptionValue(arg));
+		}
+		return null;
+	}
 }

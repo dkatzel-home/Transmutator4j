@@ -29,7 +29,7 @@ public class TestTransmutateCounter {
 			String srcRoot = new File(".").getAbsolutePath();
 			RunTransmutator4j.main(new String[]{"-out", outputFile.getAbsolutePath(),
 					"-src", srcRoot,
-					"-classes", "net\\.transmutator4j\\.integrationTests\\.Counter.*",
+					"-include", "net\\.transmutator4j\\.integrationTests\\.Counter.*",
 					"-test", "net.transmutator4j.integrationTests.TestCounter"
 					});
 			

@@ -3,7 +3,7 @@
   <parent>
     <groupId>net.transmutator4j</groupId>
     <artifactId>Transmutator4j</artifactId>
-    <version>0.0.6-SNAPSHOT</version>
+    <version>0.0.7-SNAPSHOT</version>
   </parent>
   <artifactId>Transmutator4j-ant</artifactId>
   <description>submodule for invoking Transmutator4j as an Ant task</description>

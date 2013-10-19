@@ -7,7 +7,8 @@ import org.junit.runners.Suite.SuiteClasses;
 @RunWith(Suite.class)
 @SuiteClasses({
 	TestCounter.class,
-	TestTransmutateCounter.class
+	TestTransmutateCounter.class,
+	TestBowlingGame.class
 })
 public class AllIntegrationTests {
 

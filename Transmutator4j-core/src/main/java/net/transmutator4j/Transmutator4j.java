@@ -16,6 +16,7 @@ import java.io.ObjectOutputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
@@ -139,12 +140,12 @@ public class Transmutator4j {
 				
 				MutationTestResult result = new MutationTestResultImpl(adapter.getMutatedClassname(), adapter.getMutatedLine(), adapter.getMutation(), testsStillPass);
 				AsynchronousSocketChannel client = AsynchronousSocketChannel.open();
-			    client.connect(new InetSocketAddress("localhost",port)).get();
+			    client.connect(new InetSocketAddress(InetAddress.getLocalHost(),port)).get();
 			    ByteArrayOutputStream bytes = new ByteArrayOutputStream();
 				ObjectOutputStream obWriter = new ObjectOutputStream(bytes);
 				obWriter.writeObject(result);
 			    client.write(ByteBuffer.wrap(bytes.toByteArray())).get();
-			    client.close();
+			   // client.close();
 				if(testsStillPass){
 					TransmutatorUtil.EXIT_STATES.TESTS_ALL_STILL_PASSED.exitSystem();
 				}

@@ -34,7 +34,8 @@ import org.apache.tools.ant.types.Reference;
  &lt;target name = "mutation-tests"&gt;
 		&lt;transmutator4j
 			classpathRef="test.classpath"
-			mutateclasses="my.project.Foo*"
+			incldue="my.project.Foo*"
+			exclude = ".*Test.*"
 			outputfile="transmorgify.out.xml"
 			testsuite="my.project.TestFoo"
 			
@@ -54,6 +55,7 @@ public class Transmutator4jTask extends Task{
 	private Path classpath;
     private File out;
     private String classesToMutatePattern;
+    private String classesToExcludePattern;
     private String testSuite;
     private  Reference classpathRef;
    
@@ -63,8 +65,11 @@ public class Transmutator4jTask extends Task{
 	}
 
 
-	public void setMutateClasses(String mutateClasses) {
-		this.classesToMutatePattern = mutateClasses;
+	public void setInclude(String regex) {
+		this.classesToMutatePattern = regex;
+	}
+	public void setExclude(String regex) {
+		this.classesToExcludePattern = regex;
 	}
 
 
@@ -113,16 +118,20 @@ public class Transmutator4jTask extends Task{
 		
 		javaTask.createArg().setValue("-test");
 		javaTask.createArg().setValue(testSuite);
-		
-		javaTask.createArg().setValue("-classes");
-		javaTask.createArg().setValue(classesToMutatePattern);
-		
+		if(classesToMutatePattern !=null){
+			javaTask.createArg().setValue("-include");
+			javaTask.createArg().setValue(classesToMutatePattern);
+		}
+		if(classesToExcludePattern !=null){
+			javaTask.createArg().setValue("-exclude");
+			javaTask.createArg().setValue(classesToExcludePattern);
+		}
 		javaTask.createArg().setValue("-out");
 		javaTask.createArg().setFile(out);
 		
 		
 		javaTask.setFork(true);
-		System.out.println(Arrays.toString(javaTask.getCommandLine().getCommandline()));
+
 		if(javaTask.executeJava() !=0){
 			throw new BuildException("error");
 		}
