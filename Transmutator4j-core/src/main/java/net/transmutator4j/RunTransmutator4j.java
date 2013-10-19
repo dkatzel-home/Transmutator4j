@@ -109,7 +109,6 @@ public class RunTransmutator4j implements Runnable{
 										Channels.newInputStream(resultChannel));
 								MutationTestResult testResult = (MutationTestResult) in
 										.readObject();
-								System.out.println(testResult);
 								listener.mutationResult(testResult);
 								System.out.print(exitState.getCharValue());
 								numberOfMutationsMade++;
@@ -159,7 +158,6 @@ public class RunTransmutator4j implements Runnable{
 		//+1 is added in case test suite is so fast that
 		//it takes 0 milliseconds
 		long timeOut = ((unmutatedElapsedTime/1000)+1)*10_000;
-		System.out.println(timeOut);
 		return timeOut;
 	}
 	

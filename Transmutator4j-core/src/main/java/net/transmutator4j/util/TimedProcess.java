@@ -100,10 +100,7 @@ public class TimedProcess implements Callable<Integer>{
 		    	exitValue = process.waitFor();
 		    } catch (InterruptedException ignore) {
 		      return;
-		    }finally{
-		    	if(stdOut.hasContent()){
-		    		System.out.println("STDOUT: " + stdOut.getCurrentContentsAsString());
-		    	}
+		    }finally{		    	
 		    	if(stdErr.hasContent()){
 		    		System.err.println("STDERR: " + stdErr.getCurrentContentsAsString());
 		    	}
