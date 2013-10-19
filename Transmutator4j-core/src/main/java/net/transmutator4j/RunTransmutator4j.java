@@ -23,10 +23,7 @@ import java.nio.channels.AsynchronousServerSocketChannel;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.Channels;
 import java.nio.channels.CompletionHandler;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.transmutator4j.repo.ClassPathClassRepository;
@@ -46,6 +43,10 @@ import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
 
+/**
+ * {@code RunTransmutator4j} is the main class to run
+ * Transmutator4j to mutate source classes.
+ */
 public class RunTransmutator4j implements Runnable{
 	private static final String DEFAULT_OUTPUT_XML = "transmutator4j.xml";
 	
@@ -101,7 +102,7 @@ public class RunTransmutator4j implements Runnable{
 
 		try(    
 				
-				AsynchronousServerSocketChannel server =  AsynchronousServerSocketChannel.open(group).bind(socket, 10);
+				AsynchronousServerSocketChannel server =  AsynchronousServerSocketChannel.open(group).bind(socket, 1);
 				
 				) {
 		
@@ -135,13 +136,14 @@ public class RunTransmutator4j implements Runnable{
 			    	   e.printStackTrace();
 			    	   throw new RuntimeException("error getting test result ", e);
 			       }
+			       //accept a new connection
 			       server.accept(null, this);
 			       
 			    }
 			    @Override
 			    public void failed(Throwable e, Object attachment) {
-			       // System.err.println(attachment + " failed with:" + e.getClass().getName());
-			       // e.printStackTrace();
+			     //   System.err.println(attachment + " failed with:" + e.getClass().getName());
+			    //    e.printStackTrace();
 			    }
 			});
 				    
@@ -188,6 +190,7 @@ public class RunTransmutator4j implements Runnable{
 
 				}
 			}
+			//kill any waiting connections this will cause the completionHandler's fail to get called
 			group.shutdownNow();
 			//group.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
 		

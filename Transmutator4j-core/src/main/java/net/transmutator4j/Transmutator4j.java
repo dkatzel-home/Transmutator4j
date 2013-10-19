@@ -35,7 +35,14 @@ import org.junit.runner.notification.RunNotifier;
 import org.junit.runner.notification.StoppedByUserException;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
-
+/**
+ * {@code Transmutator4j} is the client class
+ * that performs a single mutation to the 
+ * system under test and runs the unit tests
+ * to see if the tests still all pass.
+ * @author dkatzel-home
+ *
+ */
 public class Transmutator4j {
 
 	
@@ -145,7 +152,7 @@ public class Transmutator4j {
 				ObjectOutputStream obWriter = new ObjectOutputStream(bytes);
 				obWriter.writeObject(result);
 			    client.write(ByteBuffer.wrap(bytes.toByteArray())).get();
-			   // client.close();
+			    client.close();
 				if(testsStillPass){
 					TransmutatorUtil.EXIT_STATES.TESTS_ALL_STILL_PASSED.exitSystem();
 				}
