@@ -2,12 +2,10 @@ package net.transmutator4j;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
-import java.nio.file.Files;
 
 
 import net.transmutator4j.util.TransmutatorUtil;
@@ -30,11 +28,10 @@ public class XmlWriterListener implements MutationTestListener {
 	 * may not be null.  This file
 	 * will be created if it does not already exist.  If this file
 	 * already exists, it will be overwritten.
-	 * @param numTotalTests
 	 * @throws IOException if there is a problem creating the output file.
 	 * @throws NullPointerException if xmlFile is null.
 	 */
-	public XmlWriterListener(File xmlFile, int numTotalTests) throws IOException{
+	public XmlWriterListener(File xmlFile) throws IOException{
 		createDirIfNeeded(xmlFile.getParentFile());
 		OutputStream out = new BufferedOutputStream( new FileOutputStream(xmlFile));
 		

@@ -11,21 +11,13 @@
 package net.transmutator4j;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.ObjectInputStream;
-import java.io.PrintWriter;
 import java.lang.reflect.InvocationTargetException;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.ServerSocket;
 import java.nio.channels.AsynchronousServerSocketChannel;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.Channels;
-import java.rmi.registry.LocateRegistry;
-import java.rmi.registry.Registry;
-import java.rmi.server.UnicastRemoteObject;
 import java.util.concurrent.Future;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -54,14 +46,13 @@ public class RunTransmutator4j implements Runnable{
 	private int numberOfMutationsMade=0;
 	private int numberOfMutationsThatStillPassedTests=0;
 	private int numberOfMutationsThatTimedOut=0;
-	private final File xmlFile;
+	private final  MutationTestListener listener;
 	
 	public RunTransmutator4j(String nameOfTestSuite, Pattern classesToMutate,
-			File xmlFile) {
-		super();
+			File xmlFile) throws IOException {
 		this.nameOfTestSuite = nameOfTestSuite;
 		this.classesToMutates = classesToMutate;
-		this.xmlFile = xmlFile;
+		listener = new XmlWriterListener(xmlFile);
 	}
 	
 	
@@ -69,7 +60,6 @@ public class RunTransmutator4j implements Runnable{
 	public void run() {
 		
 		long startTime = System.currentTimeMillis();
-		MutationTestListener listener=null;
 		
 		try(    //socket get dynamically generated port
 				AsynchronousServerSocketChannel server =  AsynchronousServerSocketChannel.open().bind(null);
@@ -78,9 +68,9 @@ public class RunTransmutator4j implements Runnable{
 			int numTotalTests = runUnmutatedTests();
 			long unmutatedTimeEnd = System.currentTimeMillis();
 			long unmutatedElapsedTime = unmutatedTimeEnd - startTime;
+			listener.testInfo(numTotalTests, unmutatedElapsedTime);
 			System.out.println("unmutated tests took " + unmutatedElapsedTime + " ms");
 			long timeOut = computeTimeoutTime(unmutatedElapsedTime);
-			listener = new XmlWriterListener(xmlFile, numTotalTests);
 			int port = ((InetSocketAddress) server.getLocalAddress()).getPort();
 			System.out.println("port = " + port);
 		
